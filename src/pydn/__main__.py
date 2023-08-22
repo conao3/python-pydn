@@ -59,5 +59,4 @@ def main():
             print(f'[{prjdir_name}] installing {pkgs}...', file=sys.stderr)
             subprocess.run([prj_python, '-m', 'pip', 'install', *pkgs])
 
-    print(f'[{prjdir_name}] running...', file=sys.stderr)
     subprocess.run([prj_python, args.file])

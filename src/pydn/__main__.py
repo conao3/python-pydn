@@ -2,6 +2,7 @@ import argparse
 import hashlib
 import pathlib
 import subprocess
+import sys
 
 
 def parse_args() -> argparse.Namespace:
@@ -28,7 +29,7 @@ def main():
     prj_python = str(prjdir / 'bin' / 'python')
 
     if not prjdir.exists():
-        print('creating venv...')
+        print('creating venv...', file=sys.stderr)
         prjdir.mkdir(parents=True, exist_ok=True)
         subprocess.run(['python', '-m', 'venv', str(prjdir)])
         subprocess.run([prj_python, '-m', 'pip', 'install', '--upgrade', 'pip'])
@@ -55,8 +56,8 @@ def main():
             f.write(cache_summary_line + '\n')
 
         if pkgs:
-            print(f'[{prjdir_name}] installing {pkgs}...')
+            print(f'[{prjdir_name}] installing {pkgs}...', file=sys.stderr)
             subprocess.run([prj_python, '-m', 'pip', 'install', *pkgs])
 
-    print(f'[{prjdir_name}] running...')
+    print(f'[{prjdir_name}] running...', file=sys.stderr)
     subprocess.run([prj_python, args.file])

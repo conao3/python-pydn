@@ -15,13 +15,15 @@ def parse_args() -> argparse.Namespace:
 def main():
     args = parse_args()
 
-    cachedir = pathlib.Path.home() / '.cache' / 'pydn'
-    venvdir = cachedir / 'venv'
+    pydndir = pathlib.Path.home() / '.cache' / 'pydn'
+    venvdir = pydndir / 'venv'
     venvdir.mkdir(parents=True, exist_ok=True)
 
     filepath = pathlib.Path(args.file).resolve()
     prjdir_name = hashlib.sha1(str(filepath).encode()).hexdigest()
     prjdir = venvdir / prjdir_name
+
+    cache_summary = pydndir / 'summary.txt'
 
     prj_python = str(prjdir / 'bin' / 'python')
 
@@ -38,9 +40,23 @@ def main():
             if line.startswith('# pydn:')
         ]
 
-    if pkgs:
-        print(f'[{prjdir_name}] installing {pkgs}...')
-        subprocess.run([prj_python, '-m', 'pip', 'install', *pkgs])
+    cache_hit = False
+    cache_summary_line = f'{prjdir_name}:{hashlib.sha1(str(pkgs).encode()).hexdigest()}'
+
+    cache_summary.touch(exist_ok=True)
+    with open(cache_summary) as f:
+        for line in f:
+            if line.strip() == cache_summary_line:
+                cache_hit = True
+                break
+
+    if not cache_hit:
+        with open(cache_summary, 'a') as f:
+            f.write(cache_summary_line + '\n')
+
+        if pkgs:
+            print(f'[{prjdir_name}] installing {pkgs}...')
+            subprocess.run([prj_python, '-m', 'pip', 'install', *pkgs])
 
     print(f'[{prjdir_name}] running...')
     subprocess.run([prj_python, args.file])
